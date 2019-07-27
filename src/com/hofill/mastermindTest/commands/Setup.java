@@ -22,7 +22,7 @@ public class Setup implements CommandExecutor {
 
 	MySQL db = new MySQL();
 	ArrayList<String> creationState = new ArrayList<String>();
-	
+
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
@@ -32,7 +32,7 @@ public class Setup implements CommandExecutor {
 				return false;
 			} else {
 				creationState.clear();
-				creationState = getState("creation_state");
+				creationState = getState();
 				Player player = (Player) sender;
 				if (creationState.contains(player.getName())) {
 					sender.sendMessage(ChatColor.DARK_RED
@@ -43,9 +43,10 @@ public class Setup implements CommandExecutor {
 					try {
 						Connection conn = db.openConnection();
 						PreparedStatement ps = conn
-								.prepareStatement("INSERT INTO current_state(state,player) VALUES(?,?)");
+								.prepareStatement("INSERT INTO current_state(state,player,game_id) VALUES(?,?,?)");
 						ps.setString(1, "creation_state");
 						ps.setString(2, player.getName());
+						ps.setInt(3, getGameId());
 						ps.executeUpdate();
 						conn.close();
 					} catch (Exception ex) {
@@ -58,27 +59,43 @@ public class Setup implements CommandExecutor {
 					player.getInventory().addItem(createGame);
 					sender.sendMessage(ChatColor.BLUE + "Make sure you are facing north!");
 					// Phase one - Select unplayed block
-					sender.sendMessage(ChatColor.BLUE + "Drop a block to select the block type for the unplayed rows"); 
+					sender.sendMessage(ChatColor.BLUE + "Drop a block to select the block type for the unplayed rows.");
 				}
 			}
 		}
 
 		return true;
 	}
-	
-	private ArrayList<String> getState(String state){
+
+	private ArrayList<String> getState() {
 		ArrayList<String> stateArray = new ArrayList<String>();
-		try {	
+		try {
 			Connection conn = db.openConnection();
-			ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM current_state WHERE state = '" + state + "'");
+			ResultSet rs = conn.createStatement()
+					.executeQuery("SELECT * FROM current_state");
 			stateArray.clear();
 			while (rs.next()) {
 				stateArray.add(rs.getString(3));
 			}
+			conn.close();
 		} catch (Exception ex) {
 		}
 		return stateArray;
-		
+	}
+
+	private int getGameId() {
+		int gameId = 0;
+		try {
+			Connection conn = db.openConnection();
+			ResultSet rs = conn.createStatement().executeQuery("SELECT game_id FROM games ORDER BY game_id");
+			if (rs.next()) {
+				rs.last();
+				gameId = rs.getInt(1) + 1;
+			}
+			conn.createStatement().executeUpdate("INSERT INTO games(game_id) VALUES('" + gameId + "')");
+		} catch (Exception ex) {
+		}
+		return gameId;
 	}
 
 }

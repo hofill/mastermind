@@ -26,7 +26,7 @@ public class ConfigManager {
 
 		cfg = YamlConfiguration.loadConfiguration(dbFile);
 		setValues();
-		
+
 	}
 
 	public FileConfiguration getDBFile() {
@@ -37,8 +37,8 @@ public class ConfigManager {
 		plugin.saveResource("database.yml", false);
 		setValues();
 	}
-	
-	public void reloadDBFile(){
+
+	public void reloadDBFile() {
 		cfg = YamlConfiguration.loadConfiguration(dbFile);
 	}
 
@@ -49,5 +49,5 @@ public class ConfigManager {
 		DatabaseValues.port = getDBFile().getString("port");
 		DatabaseValues.database = getDBFile().getString("database");
 	}
-	
+
 }

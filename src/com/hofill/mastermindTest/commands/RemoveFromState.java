@@ -25,7 +25,7 @@ public class RemoveFromState implements CommandExecutor {
 		if (label.equalsIgnoreCase("removefromstate")) {
 			try {
 				Connection conn = db.openConnection();
-				ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM current_state WHERE state = 'creation_state'");
+				ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM current_state");
 				creationState.clear();
 				while (rs.next()) {
 					creationState.add(rs.getString(3));
@@ -51,10 +51,16 @@ public class RemoveFromState implements CommandExecutor {
 				} else {
 					try {
 						Connection conn = db.openConnection();
-						PreparedStatement ps = conn.prepareStatement(
-								"DELETE FROM current_state WHERE state = 'creation_state' AND player = ?");
-						ps.setString(1, args[0]);
-						ps.executeUpdate();
+						PreparedStatement ps1 = conn
+								.prepareStatement("SELECT game_id FROM current_state WHERE player = ?");
+						ps1.setString(1, args[0]);
+						ResultSet rs = ps1.executeQuery();
+						while(rs.next()) {
+							conn.createStatement().executeUpdate("DELETE FROM games WHERE game_id = '" + rs.getInt(1) + "'");
+						}
+						PreparedStatement ps2 = conn.prepareStatement("DELETE FROM current_state WHERE player = ?");
+						ps2.setString(1, args[0]);
+						ps2.executeUpdate();
 						conn.close();
 					} catch (Exception ex) {
 					}

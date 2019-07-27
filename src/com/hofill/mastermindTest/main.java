@@ -7,7 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.hofill.mastermindTest.commands.RemoveFromState;
 import com.hofill.mastermindTest.commands.Setup;
 import com.hofill.mastermindTest.mysql.DatabaseValues;
-
+import com.hofill.mastermindTest.players.selectUnplayedBlock;
 
 import net.md_5.bungee.api.ChatColor;;
 
@@ -19,6 +19,7 @@ public class main extends JavaPlugin {
 		registerConfig(); // Getting config data
 		registerConfigManager(); // Getting other data (database)
 		registerCommands();
+		registerEvents();
 	}
 
 	public static void tellConsole(String msg) {
@@ -28,6 +29,10 @@ public class main extends JavaPlugin {
 	public void registerCommands() {
 		getCommand("setupgame").setExecutor(new Setup());
 		getCommand("removefromstate").setExecutor(new RemoveFromState());
+	}
+	
+	public void registerEvents() {
+		getServer().getPluginManager().registerEvents(new selectUnplayedBlock(), this);
 	}
 	
 	public void registerConfig() {
@@ -44,7 +49,6 @@ public class main extends JavaPlugin {
 			Bukkit.getConsoleSender().sendMessage(
 					ChatColor.RED + "You can't leave blank spaces in your database.yml file (except for password)");
 		}
-
 	}
 
 }

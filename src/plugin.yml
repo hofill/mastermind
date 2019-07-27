@@ -1,6 +1,7 @@
 main: com.hofill.mastermindTest.main
 version: 1.0
 name: Test
+api-version: 1.13
 
 commands:
   setupgame:

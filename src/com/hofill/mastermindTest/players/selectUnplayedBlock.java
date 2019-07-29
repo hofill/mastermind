@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerDropItemEvent;
 
+import com.hofill.mastermindTest.inventories.InventoryGuessNumber;
 import com.hofill.mastermindTest.mysql.MySQL;
 
 import net.md_5.bungee.api.ChatColor;
@@ -19,6 +20,7 @@ import net.md_5.bungee.api.ChatColor;
 public class selectUnplayedBlock implements Listener {
 
 	MySQL db = new MySQL();
+	InventoryGuessNumber inv = new InventoryGuessNumber();
 	ArrayList<String> creationState = new ArrayList<String>(); // Unplayed Block
 	ArrayList<String> blockStateOne = new ArrayList<String>(); // Correct position
 	ArrayList<String> blockStateTwo = new ArrayList<String>(); // Wrong position
@@ -44,12 +46,11 @@ public class selectUnplayedBlock implements Listener {
 			Item item = event.getItemDrop();
 			Material mat = item.getItemStack().getType();
 			if (mat.isBlock() && !mat.hasGravity()) {
-				removeState("creation_state", player.getName());
-				setState("block_state_one", player.getName());
+				updateState("creation_state", "block_state_one", player.getName());
+				updateGame("unplayed_material", player.getName(), mat.name());
 				player.sendMessage(ChatColor.BLUE + "Block selected!");
 				player.sendMessage(ChatColor.BLUE
 						+ "Drop a block to select the block type for the right position and right peg color state.");
-				updateGame("unplayed_material", player.getName(), mat.name(), "creation_state");
 			} else {
 				player.sendMessage(ChatColor.DARK_GRAY + "Can't use this block! Please try another one.");
 			}
@@ -58,12 +59,11 @@ public class selectUnplayedBlock implements Listener {
 			Item item = event.getItemDrop();
 			Material mat = item.getItemStack().getType();
 			if (mat.isBlock() && !mat.hasGravity()) {
-				removeState("block_state_one", player.getName());
-				setState("block_state_two", player.getName());
+				updateState("block_state_one", "block_state_two", player.getName());
+				updateGame("peg_correct_material", player.getName(), mat.name());
 				player.sendMessage(ChatColor.BLUE + "Block selected!");
 				player.sendMessage(ChatColor.BLUE
 						+ "Drop a block to select the block type for the wrong position and right peg color state.");
-				updateGame("peg_correct_material", player.getName(), mat.name(), "block_state_one");
 			} else {
 				player.sendMessage(ChatColor.DARK_GRAY + "Can't use this block! Please try another one.");
 			}
@@ -72,11 +72,11 @@ public class selectUnplayedBlock implements Listener {
 			Item item = event.getItemDrop();
 			Material mat = item.getItemStack().getType();
 			if (mat.isBlock() && !mat.hasGravity()) {
-				removeState("block_state_two", player.getName());
-				setState("game_length_state", player.getName());
+				updateState("block_state_two", "game_length_state", player.getName());
+				updateGame("peg_wrong_material", player.getName(), mat.name());
 				player.sendMessage(ChatColor.BLUE + "Block selected!");
-				player.sendMessage(ChatColor.BLUE + "Click on the chat to choose the amount of allowed guesses.");
-				updateGame("peg_wrong_material", player.getName(), mat.name(), "block_state_two");
+				player.sendMessage(ChatColor.BLUE + "Right click on the wand to set the game length.");
+				player.openInventory(InventoryGuessNumber.inventory);
 			} else {
 				player.sendMessage(ChatColor.DARK_GRAY + "Can't use this block! Please try another one.");
 			}
@@ -100,52 +100,39 @@ public class selectUnplayedBlock implements Listener {
 		return stateArray;
 	}
 
-	private void setState(String state, String player) {
-		try {
-			Connection conn = db.openConnection();
-			PreparedStatement ps = conn
-					.prepareStatement("INSERT INTO current_state(state,player,game_id) VALUES(?,?,?)");
-			ps.setString(1, state);
-			ps.setString(2, player);
-			ps.setInt(3, getGameId(state, player));
-			ps.executeUpdate();
-			conn.close();
-		} catch (Exception ex) {
-		}
-	}
-
-	private void updateGame(String column, String player, String block, String state) {
+	private void updateGame(String column, String player, String block) {
+		int gameId = getGameId(player);
 		try {
 			Connection conn = db.openConnection();
 			PreparedStatement ps = conn.prepareStatement("UPDATE games SET " + column + " = ? WHERE game_id = ?");
 			ps.setString(1, block);
-			ps.setInt(2, getGameId(state, player));
+			ps.setInt(2, gameId);
 			ps.executeUpdate();
 			conn.close();
 		} catch (Exception ex) {
 		}
 	}
 
-	private void removeState(String state, String player) {
+	private void updateState(String initialState, String changedState, String player) {
 		try {
 			Connection conn = db.openConnection();
-			PreparedStatement ps = conn.prepareStatement("DELETE FROM current_state WHERE state = ? AND player = ?");
-			ps.setString(1, state);
-			ps.setString(2, player);
+			PreparedStatement ps = conn.prepareStatement("UPDATE current_state SET state = ? WHERE state = ? AND player = ?");
+			ps.setString(1, changedState);
+			ps.setString(2, initialState);
+			ps.setString(3, player);
 			ps.executeUpdate();
 			conn.close();
 		} catch (Exception ex) {
 		}
 	}
 
-	private int getGameId(String state, String player) {
+	private int getGameId(String player) {
 		int gameId = 0;
 		try {
 			Connection conn = db.openConnection();
 			PreparedStatement ps = conn
-					.prepareStatement("SELECT game_id FROM current_state WHERE state = ? AND player = ?");
-			ps.setString(1, state);
-			ps.setString(2, player);
+					.prepareStatement("SELECT game_id FROM current_state WHERE player = ?");
+			ps.setString(1, player);
 			ResultSet rs = ps.executeQuery();
 			rs.next();
 			gameId = rs.getInt(1);

@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -55,6 +56,7 @@ public class Setup implements CommandExecutor {
 					createGame.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
 					ItemMeta metaCreateGame = createGame.getItemMeta();
 					metaCreateGame.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&2Create Game"));
+					metaCreateGame.setLore(Arrays.asList("Aids you in creating your Mastermind game"));
 					createGame.setItemMeta(metaCreateGame);
 					player.getInventory().addItem(createGame);
 					sender.sendMessage(ChatColor.BLUE + "Make sure you are facing north!");
@@ -71,8 +73,7 @@ public class Setup implements CommandExecutor {
 		ArrayList<String> stateArray = new ArrayList<String>();
 		try {
 			Connection conn = db.openConnection();
-			ResultSet rs = conn.createStatement()
-					.executeQuery("SELECT * FROM current_state");
+			ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM current_state");
 			stateArray.clear();
 			while (rs.next()) {
 				stateArray.add(rs.getString(3));

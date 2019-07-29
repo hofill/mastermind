@@ -7,6 +7,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.hofill.mastermindTest.commands.RemoveFromState;
 import com.hofill.mastermindTest.commands.Setup;
 import com.hofill.mastermindTest.mysql.DatabaseValues;
+import com.hofill.mastermindTest.players.clickInInventory;
+import com.hofill.mastermindTest.players.rightClickWand;
 import com.hofill.mastermindTest.players.selectUnplayedBlock;
 
 import net.md_5.bungee.api.ChatColor;;
@@ -33,6 +35,8 @@ public class main extends JavaPlugin {
 	
 	public void registerEvents() {
 		getServer().getPluginManager().registerEvents(new selectUnplayedBlock(), this);
+		getServer().getPluginManager().registerEvents(new rightClickWand(), this);
+		getServer().getPluginManager().registerEvents(new clickInInventory(), this);
 	}
 	
 	public void registerConfig() {

@@ -13,7 +13,7 @@ import net.md_5.bungee.api.ChatColor;
 
 public class InventoryPegsCount {
 
-	public static Inventory inventory = Bukkit.createInventory(null, 9, "Select number of guesses");
+	public static Inventory inventory = Bukkit.createInventory(null, 9, "Select number of colors per guess");
 
 	static{
 		inventory.setItem(2, getWoolGuesses("Length 4", Material.GREEN_WOOL, ChatColor.GREEN, Arrays.asList("4 colors per guess", "Default")));

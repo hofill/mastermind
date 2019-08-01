@@ -24,6 +24,7 @@ public class selectUnplayedBlock implements Listener {
 	ArrayList<String> creationState = new ArrayList<String>(); // Unplayed Block
 	ArrayList<String> blockStateOne = new ArrayList<String>(); // Correct position
 	ArrayList<String> blockStateTwo = new ArrayList<String>(); // Wrong position
+	ArrayList<String> beforeSolution = new ArrayList<String>(); // Before solution
 	ArrayList<String> gameLengthState = new ArrayList<String>(); // Game length
 	ArrayList<String> pegsCountState = new ArrayList<String>(); // Number of pegs
 
@@ -36,12 +37,14 @@ public class selectUnplayedBlock implements Listener {
 		blockStateTwo.clear();
 		gameLengthState.clear();
 		pegsCountState.clear();
+		beforeSolution.clear();
 		// Get states from database
 		creationState = getState("creation_state");
 		blockStateOne = getState("block_state_one");
 		blockStateTwo = getState("block_state_two");
 		gameLengthState = getState("game_length_state");
 		pegsCountState = getState("pegs_count_state");
+		beforeSolution = getState("before_solution_state");
 		if (creationState.contains(player.getName())) { // Initial state
 			Item item = event.getItemDrop();
 			Material mat = item.getItemStack().getType();
@@ -72,8 +75,20 @@ public class selectUnplayedBlock implements Listener {
 			Item item = event.getItemDrop();
 			Material mat = item.getItemStack().getType();
 			if (mat.isBlock() && !mat.hasGravity()) {
-				updateState("block_state_two", "game_length_state", player.getName());
+				updateState("block_state_two", "before_solution_state", player.getName());
 				updateGame("peg_wrong_material", player.getName(), mat.name());
+				player.sendMessage(ChatColor.BLUE + "Block selected!");
+				player.sendMessage(ChatColor.BLUE + "Drop a block to select the block type for the hidden solution.");
+			} else {
+				player.sendMessage(ChatColor.DARK_GRAY + "Can't use this block! Please try another one.");
+			}
+			event.setCancelled(true);
+		} else if (beforeSolution.contains(player.getName())) {
+			Item item = event.getItemDrop();
+			Material mat = item.getItemStack().getType();
+			if (mat.isBlock() && !mat.hasGravity()) {
+				updateState("before_solution_state", "game_length_state", player.getName());
+				updateGame("before_solution_material", player.getName(), mat.name());
 				player.sendMessage(ChatColor.BLUE + "Block selected!");
 				player.sendMessage(ChatColor.BLUE + "Right click on the wand to set the game length.");
 				player.openInventory(InventoryGuessNumber.inventory);
@@ -116,7 +131,8 @@ public class selectUnplayedBlock implements Listener {
 	private void updateState(String initialState, String changedState, String player) {
 		try {
 			Connection conn = db.openConnection();
-			PreparedStatement ps = conn.prepareStatement("UPDATE current_state SET state = ? WHERE state = ? AND player = ?");
+			PreparedStatement ps = conn
+					.prepareStatement("UPDATE current_state SET state = ? WHERE state = ? AND player = ?");
 			ps.setString(1, changedState);
 			ps.setString(2, initialState);
 			ps.setString(3, player);
@@ -130,8 +146,7 @@ public class selectUnplayedBlock implements Listener {
 		int gameId = 0;
 		try {
 			Connection conn = db.openConnection();
-			PreparedStatement ps = conn
-					.prepareStatement("SELECT game_id FROM current_state WHERE player = ?");
+			PreparedStatement ps = conn.prepareStatement("SELECT game_id FROM current_state WHERE player = ?");
 			ps.setString(1, player);
 			ResultSet rs = ps.executeQuery();
 			rs.next();

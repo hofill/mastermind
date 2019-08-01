@@ -30,7 +30,6 @@ public class Setup implements CommandExecutor {
 		if (label.equalsIgnoreCase("setupgame")) {
 			if (!(sender instanceof Player)) {
 				sender.sendMessage("You must be a player to use this command!");
-				return false;
 			} else {
 				creationState.clear();
 				creationState = getState();
@@ -44,10 +43,11 @@ public class Setup implements CommandExecutor {
 					try {
 						Connection conn = db.openConnection();
 						PreparedStatement ps = conn
-								.prepareStatement("INSERT INTO current_state(state,player,game_id) VALUES(?,?,?)");
+								.prepareStatement("INSERT INTO current_state(state,player,game_id,is_editing) VALUES(?,?,?,?)");
 						ps.setString(1, "creation_state");
 						ps.setString(2, player.getName());
 						ps.setInt(3, getGameId());
+						ps.setBoolean(4, false);
 						ps.executeUpdate();
 						conn.close();
 					} catch (Exception ex) {
@@ -93,7 +93,7 @@ public class Setup implements CommandExecutor {
 				rs.last();
 				gameId = rs.getInt(1) + 1;
 			}
-			conn.createStatement().executeUpdate("INSERT INTO games(game_id) VALUES('" + gameId + "')");
+			conn.createStatement().executeUpdate("INSERT INTO games(game_id,is_played) VALUES('" + gameId + "', false)");
 		} catch (Exception ex) {
 		}
 		return gameId;

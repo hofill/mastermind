@@ -8,6 +8,7 @@ import com.hofill.mastermindTest.commands.RemoveFromState;
 import com.hofill.mastermindTest.commands.Setup;
 import com.hofill.mastermindTest.mysql.DatabaseValues;
 import com.hofill.mastermindTest.players.clickInInventory;
+import com.hofill.mastermindTest.players.getChatNumber;
 import com.hofill.mastermindTest.players.rightClickWand;
 import com.hofill.mastermindTest.players.selectUnplayedBlock;
 
@@ -37,6 +38,7 @@ public class main extends JavaPlugin {
 		getServer().getPluginManager().registerEvents(new selectUnplayedBlock(), this);
 		getServer().getPluginManager().registerEvents(new rightClickWand(), this);
 		getServer().getPluginManager().registerEvents(new clickInInventory(), this);
+		getServer().getPluginManager().registerEvents(new getChatNumber(), this);
 	}
 	
 	public void registerConfig() {

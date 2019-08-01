@@ -93,6 +93,7 @@ public class clickInInventory implements Listener{
 					updateGame("pegs_count", player.getName(), 4);
 					updateState("pegs_count_state", "coord_win_display_state", player.getName());
 					player.sendMessage(ChatColor.BLUE + "4 Selected.");
+					player.sendMessage(ChatColor.BLUE + "Right click with the wand on the win display");
 				}
 				else if(event.getCurrentItem() != null
 						&& event.getCurrentItem().equals(orangeWool)) {
@@ -101,6 +102,7 @@ public class clickInInventory implements Listener{
 					updateGame("pegs_count", player.getName(), 6);
 					updateState("pegs_count_state", "coord_win_display_state", player.getName());
 					player.sendMessage(ChatColor.BLUE + "6 Selected.");
+					player.sendMessage(ChatColor.BLUE + "Right click with the wand on the win display");
 				}
 				else if(event.getCurrentItem() != null
 						&& event.getCurrentItem().equals(redWool)) {
@@ -109,6 +111,7 @@ public class clickInInventory implements Listener{
 					updateGame("pegs_count", player.getName(), 8);
 					updateState("pegs_count_state", "coord_win_display_state", player.getName());
 					player.sendMessage(ChatColor.BLUE + "8 Selected.");
+					player.sendMessage(ChatColor.BLUE + "Right click with the wand on the win display");
 				}
 			}
 			new BukkitRunnable() {

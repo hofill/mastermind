@@ -1,6 +1,5 @@
 package com.hofill.mastermindTest.commands;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Random;
@@ -95,11 +94,9 @@ public class Mastermind implements CommandExecutor {
 	private boolean isOccupied(int gameId) {
 		boolean isPlayed = false;
 		try {
-			Connection conn = db.openConnection();
-			ResultSet rs = conn.createStatement().executeQuery("SELECT is_played FROM games WHERE game_id = " + gameId);
+			ResultSet rs = db.getConnection().createStatement().executeQuery("SELECT is_played FROM games WHERE game_id = " + gameId);
 			rs.next();
 			isPlayed = rs.getBoolean(1);
-			conn.close();
 		} catch (Exception ex) {
 		}
 		return isPlayed;
@@ -107,8 +104,7 @@ public class Mastermind implements CommandExecutor {
 
 	private void playGame(String answer, String player, int gameId, String location) {
 		try {
-			Connection conn = db.openConnection();
-			PreparedStatement ps = conn.prepareStatement(
+			PreparedStatement ps = db.getConnection().prepareStatement(
 					"INSERT INTO games_in_progress(game_id,player,answer,at_guess,teleport) VALUES(?,?,?,?,?)");
 			ps.setInt(1, gameId);
 			ps.setString(2, player);
@@ -116,7 +112,6 @@ public class Mastermind implements CommandExecutor {
 			ps.setInt(4, 0);
 			ps.setString(5, location);
 			ps.executeUpdate();
-			conn.close();
 		} catch (Exception ex) {
 		}
 	}
@@ -124,12 +119,10 @@ public class Mastermind implements CommandExecutor {
 	private int getPegCount(int gameId) {
 		int pegCount = 0;
 		try {
-			Connection conn = db.openConnection();
-			ResultSet rs = conn.createStatement()
+			ResultSet rs = db.getConnection().createStatement()
 					.executeQuery("SELECT pegs_count FROM games WHERE game_id = " + gameId);
 			rs.next();
 			pegCount = rs.getInt(1);
-			conn.close();
 		} catch (Exception ex) {
 		}
 		return pegCount;
@@ -227,11 +220,10 @@ public class Mastermind implements CommandExecutor {
 		World world;
 		Location location = null;
 		try {
-			Connection conn = db.openConnection();
-			ResultSet rs = conn.createStatement().executeQuery("SELECT world FROM games WHERE game_id = " + gameId);
+			ResultSet rs = db.getConnection().createStatement().executeQuery("SELECT world FROM games WHERE game_id = " + gameId);
 			rs.next();
 			worldString = rs.getString(1);
-			rs = conn.createStatement().executeQuery("SELECT main_room_teleport FROM games WHERE game_id = " + gameId);
+			rs = db.getConnection().createStatement().executeQuery("SELECT main_room_teleport FROM games WHERE game_id = " + gameId);
 			rs.next();
 			coords = rs.getString(1);
 			splitCoords = coords.split("\\,");
@@ -248,11 +240,9 @@ public class Mastermind implements CommandExecutor {
 	private boolean gameExists(int gameId) {
 		boolean exists = false;
 		try {
-			Connection conn = db.openConnection();
-			ResultSet rs = conn.createStatement().executeQuery("SELECT game_id FROM games WHERE game_id = " + gameId);
+			ResultSet rs = db.getConnection().createStatement().executeQuery("SELECT game_id FROM games WHERE game_id = " + gameId);
 			if (rs.next())
 				exists = true;
-			conn.close();
 		} catch (Exception ex) {
 		}
 		return exists;
@@ -269,9 +259,7 @@ public class Mastermind implements CommandExecutor {
 
 	private void setOccupied(int gameId) {
 		try {
-			Connection conn = db.openConnection();
-			conn.createStatement().executeUpdate("UPDATE games SET is_played = 1 WHERE game_id = " + gameId);
-			conn.close();
+			db.getConnection().createStatement().executeUpdate("UPDATE games SET is_played = 1 WHERE game_id = " + gameId);
 		} catch (Exception ex) {
 		}
 	}

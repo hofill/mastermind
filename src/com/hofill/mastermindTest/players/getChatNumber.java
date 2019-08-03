@@ -1,6 +1,5 @@
 package com.hofill.mastermindTest.players;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -33,8 +32,7 @@ public class getChatNumber implements Listener {
 					updateState("button_amount_state", "button_coord_state", player.getName());
 					player.sendMessage(ChatColor.BLUE + "Right click on the buttons that confirm the guess.");
 					event.setCancelled(true);
-				}
-				else {
+				} else {
 					player.sendMessage(ChatColor.RED + "Type a number between 1 and 4.");
 					event.setCancelled(true);
 				}
@@ -45,14 +43,12 @@ public class getChatNumber implements Listener {
 	private ArrayList<String> getState(String state) {
 		ArrayList<String> stateArray = new ArrayList<String>();
 		try {
-			Connection conn = db.openConnection();
-			ResultSet rs = conn.createStatement()
+			ResultSet rs = db.getConnection().createStatement()
 					.executeQuery("SELECT * FROM current_state WHERE state = '" + state + "'");
 			stateArray.clear();
 			while (rs.next()) {
 				stateArray.add(rs.getString(3));
 			}
-			conn.close();
 		} catch (Exception ex) {
 		}
 		return stateArray;
@@ -61,10 +57,8 @@ public class getChatNumber implements Listener {
 	private void updateGame(String column, String player, int change) {
 		int gameId = getGameId(player);
 		try {
-			Connection conn = db.openConnection();
-			conn.createStatement()
+			db.getConnection().createStatement()
 					.executeUpdate("UPDATE games SET " + column + " = " + change + " WHERE game_id = " + gameId);
-			conn.close();
 		} catch (Exception ex) {
 		}
 	}
@@ -72,13 +66,12 @@ public class getChatNumber implements Listener {
 	private int getGameId(String player) {
 		int gameId = 0;
 		try {
-			Connection conn = db.openConnection();
-			PreparedStatement ps = conn.prepareStatement("SELECT game_id FROM current_state WHERE player = ?");
+			PreparedStatement ps = db.getConnection()
+					.prepareStatement("SELECT game_id FROM current_state WHERE player = ?");
 			ps.setString(1, player);
 			ResultSet rs = ps.executeQuery();
 			rs.next();
 			gameId = rs.getInt(1);
-			conn.close();
 		} catch (Exception ex) {
 		}
 		return gameId;
@@ -86,14 +79,12 @@ public class getChatNumber implements Listener {
 
 	private void updateState(String initialState, String changedState, String player) {
 		try {
-			Connection conn = db.openConnection();
-			PreparedStatement ps = conn
+			PreparedStatement ps = db.getConnection()
 					.prepareStatement("UPDATE current_state SET state = ? WHERE state = ? AND player = ?");
 			ps.setString(1, changedState);
 			ps.setString(2, initialState);
 			ps.setString(3, player);
 			ps.executeUpdate();
-			conn.close();
 		} catch (Exception ex) {
 		}
 	}

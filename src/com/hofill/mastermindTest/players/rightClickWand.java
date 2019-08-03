@@ -1,10 +1,10 @@
 package com.hofill.mastermindTest.players;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
@@ -51,6 +51,9 @@ public class rightClickWand implements Listener {
 		if (eventItem != null)
 			createGame.setAmount(eventItem.getAmount());
 		if (eventItem != null && eventItem.equals(createGame)) {
+			String currentState = getHasState(player.getName());
+			List<String> states = Arrays.asList("game_length_state", "pegs_count_state",
+					"creation_state", "block_state_one", "block_state_two", "before_solution_state");
 			// Clear arrays
 			gameLengthState.clear();
 			pegsCountState.clear();
@@ -75,7 +78,7 @@ public class rightClickWand implements Listener {
 						player.openInventory(InventoryGuessNumber.inventory);
 					} else if (pegsCountState.contains(player.getName())) {
 						player.openInventory(InventoryPegsCount.inventory);
-					} else {
+					} else if (states.contains(currentState)) {
 						player.sendMessage(ChatColor.RED + "You must right click on a block!");
 					}
 				} else {
@@ -249,26 +252,34 @@ public class rightClickWand implements Listener {
 	private ArrayList<String> getState(String state) {
 		ArrayList<String> stateArray = new ArrayList<String>();
 		try {
-			Connection conn = db.openConnection();
-			ResultSet rs = conn.createStatement()
+			ResultSet rs = db.getConnection().createStatement()
 					.executeQuery("SELECT * FROM current_state WHERE state = '" + state + "'");
 			stateArray.clear();
 			while (rs.next()) {
 				stateArray.add(rs.getString(3));
 			}
-			conn.close();
 		} catch (Exception ex) {
 		}
 		return stateArray;
 	}
 
+	private String getHasState(String player) {
+		String state = "";
+		try {
+			ResultSet rs = db.getConnection().createStatement()
+					.executeQuery("SELECT state FROM current_state WHERE player = " + player);
+			rs.next();
+			state = rs.getString(1);
+		} catch (Exception ex) {
+		}
+		return state;
+	}
+
 	private void updateCoord(String column, String player, String coord) {
 		int gameId = getGameId(player);
 		try {
-			Connection conn = db.openConnection();
-			conn.createStatement()
+			db.getConnection().createStatement()
 					.executeUpdate("UPDATE games SET " + column + " = '" + coord + "' WHERE game_id = " + gameId);
-			conn.close();
 		} catch (Exception ex) {
 		}
 	}
@@ -277,14 +288,12 @@ public class rightClickWand implements Listener {
 		String coordString = "";
 		int gameId = getGameId(player);
 		try {
-			Connection conn = db.openConnection();
-			ResultSet rs = conn.createStatement()
+			ResultSet rs = db.getConnection().createStatement()
 					.executeQuery("SELECT " + column + " FROM games WHERE game_id = '" + gameId + "'");
 			rs.next();
 			coordString = rs.getString(1);
 			if (coordString == null)
 				coordString = "";
-			conn.close();
 		} catch (Exception ex) {
 		}
 		return coordString;
@@ -294,12 +303,10 @@ public class rightClickWand implements Listener {
 		int size = 0;
 		int gameId = getGameId(player);
 		try {
-			Connection conn = db.openConnection();
-			ResultSet rs = conn.createStatement()
+			ResultSet rs = db.getConnection().createStatement()
 					.executeQuery("SELECT " + column + " FROM games WHERE game_id = '" + gameId + "'");
 			rs.next();
 			size = rs.getInt(1);
-			conn.close();
 		} catch (Exception ex) {
 		}
 		return size;
@@ -307,9 +314,8 @@ public class rightClickWand implements Listener {
 
 	private void removeState(String player) {
 		try {
-			Connection conn = db.openConnection();
-			conn.createStatement().executeUpdate("DELETE FROM current_state WHERE player = '" + player + "'");
-			conn.close();
+			db.getConnection().createStatement()
+					.executeUpdate("DELETE FROM current_state WHERE player = '" + player + "'");
 		} catch (Exception ex) {
 		}
 	}
@@ -317,13 +323,12 @@ public class rightClickWand implements Listener {
 	private int getGameId(String player) {
 		int gameId = 0;
 		try {
-			Connection conn = db.openConnection();
-			PreparedStatement ps = conn.prepareStatement("SELECT game_id FROM current_state WHERE player = ?");
+			PreparedStatement ps = db.getConnection()
+					.prepareStatement("SELECT game_id FROM current_state WHERE player = ?");
 			ps.setString(1, player);
 			ResultSet rs = ps.executeQuery();
 			rs.next();
 			gameId = rs.getInt(1);
-			conn.close();
 		} catch (Exception ex) {
 		}
 		return gameId;
@@ -331,14 +336,12 @@ public class rightClickWand implements Listener {
 
 	private void updateState(String initialState, String changedState, String player) {
 		try {
-			Connection conn = db.openConnection();
-			PreparedStatement ps = conn
+			PreparedStatement ps = db.getConnection()
 					.prepareStatement("UPDATE current_state SET state = ? WHERE state = ? AND player = ?");
 			ps.setString(1, changedState);
 			ps.setString(2, initialState);
 			ps.setString(3, player);
 			ps.executeUpdate();
-			conn.close();
 		} catch (Exception ex) {
 		}
 	}

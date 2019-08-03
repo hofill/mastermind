@@ -21,9 +21,9 @@ public class MySQL {
 		password = DatabaseValues.password;
 	}
 
-	public Connection openConnection() throws SQLException, ClassNotFoundException {
+	public void openConnection() throws SQLException, ClassNotFoundException {
 		if (conn != null && !conn.isClosed()) {
-			return conn;
+			return;
 		}
 
 		String connectionURL = "jdbc:mysql://" + hostname + ":" + port;
@@ -33,6 +33,14 @@ public class MySQL {
 
 		Class.forName("com.mysql.jdbc.Driver");
 		conn = DriverManager.getConnection(connectionURL, user, password);
+		
+	}
+	
+	public Connection getConnection() throws ClassNotFoundException, SQLException {
+		if (conn != null && !conn.isClosed()) {
+			return conn;
+		}
+		openConnection();
 		return conn;
 	}
 

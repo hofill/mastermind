@@ -1,6 +1,5 @@
 package com.hofill.mastermindTest.commands;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
@@ -24,8 +23,7 @@ public class RemoveFromState implements CommandExecutor {
 
 		if (label.equalsIgnoreCase("removefromstate")) {
 			try {
-				Connection conn = db.openConnection();
-				ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM current_state");
+				ResultSet rs = db.getConnection().createStatement().executeQuery("SELECT * FROM current_state");
 				creationState.clear();
 				while (rs.next()) {
 					creationState.add(rs.getString(3));
@@ -50,18 +48,16 @@ public class RemoveFromState implements CommandExecutor {
 					sender.sendMessage(ChatColor.DARK_RED + "User " + args[0] + " is not currently creating a game!");
 				} else {
 					try {
-						Connection conn = db.openConnection();
-						PreparedStatement ps1 = conn
+						PreparedStatement ps1 = db.getConnection()
 								.prepareStatement("SELECT game_id FROM current_state WHERE player = ?");
 						ps1.setString(1, args[0]);
 						ResultSet rs = ps1.executeQuery();
 						while(rs.next()) {
-							conn.createStatement().executeUpdate("DELETE FROM games WHERE game_id = '" + rs.getInt(1) + "'");
+							db.getConnection().createStatement().executeUpdate("DELETE FROM games WHERE game_id = '" + rs.getInt(1) + "'");
 						}
-						PreparedStatement ps2 = conn.prepareStatement("DELETE FROM current_state WHERE player = ?");
+						PreparedStatement ps2 = db.getConnection().prepareStatement("DELETE FROM current_state WHERE player = ?");
 						ps2.setString(1, args[0]);
 						ps2.executeUpdate();
-						conn.close();
 					} catch (Exception ex) {
 					}
 					sender.sendMessage(ChatColor.DARK_GRAY + "User " + args[0] + " has been removed from the list!");

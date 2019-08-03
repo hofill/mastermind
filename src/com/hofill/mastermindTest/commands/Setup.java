@@ -1,6 +1,5 @@
 package com.hofill.mastermindTest.commands;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -41,15 +40,13 @@ public class Setup implements CommandExecutor {
 					sender.sendMessage(ChatColor.DARK_RED + "Too many people are creating a game! Try again later.");
 				} else {
 					try {
-						Connection conn = db.openConnection();
-						PreparedStatement ps = conn
+						PreparedStatement ps = db.getConnection()
 								.prepareStatement("INSERT INTO current_state(state,player,game_id,is_editing) VALUES(?,?,?,?)");
 						ps.setString(1, "creation_state");
 						ps.setString(2, player.getName());
 						ps.setInt(3, getGameId());
 						ps.setBoolean(4, false);
 						ps.executeUpdate();
-						conn.close();
 					} catch (Exception ex) {
 					}
 					ItemStack createGame = new ItemStack(Material.BLAZE_ROD, 1);
@@ -71,13 +68,11 @@ public class Setup implements CommandExecutor {
 	private ArrayList<String> getState() {
 		ArrayList<String> stateArray = new ArrayList<String>();
 		try {
-			Connection conn = db.openConnection();
-			ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM current_state");
+			ResultSet rs = db.getConnection().createStatement().executeQuery("SELECT * FROM current_state");
 			stateArray.clear();
 			while (rs.next()) {
 				stateArray.add(rs.getString(3));
 			}
-			conn.close();
 		} catch (Exception ex) {
 		}
 		return stateArray;
@@ -86,13 +81,12 @@ public class Setup implements CommandExecutor {
 	private int getGameId() {
 		int gameId = 0;
 		try {
-			Connection conn = db.openConnection();
-			ResultSet rs = conn.createStatement().executeQuery("SELECT game_id FROM games ORDER BY game_id");
+			ResultSet rs = db.getConnection().createStatement().executeQuery("SELECT game_id FROM games ORDER BY game_id");
 			if (rs.next()) {
 				rs.last();
 				gameId = rs.getInt(1) + 1;
 			}
-			conn.createStatement().executeUpdate("INSERT INTO games(game_id,is_played) VALUES('" + gameId + "', false)");
+			db.getConnection().createStatement().executeUpdate("INSERT INTO games(game_id,is_played) VALUES('" + gameId + "', false)");
 		} catch (Exception ex) {
 		}
 		return gameId;

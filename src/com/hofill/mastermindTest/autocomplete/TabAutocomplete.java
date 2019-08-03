@@ -35,7 +35,7 @@ public class TabAutocomplete implements TabCompleter {
 		List<String> list = new ArrayList<String>();
 		list.clear();
 		try {
-			Connection conn = db.getConnection();
+			Connection conn = db.openConnection();
 			ResultSet rs = conn.createStatement().executeQuery("SELECT player FROM current_state");
 			while (rs.next()) {
 				list.add(rs.getString(1));

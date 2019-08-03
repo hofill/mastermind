@@ -1,5 +1,6 @@
 package com.hofill.mastermindTest.players;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -101,12 +102,14 @@ public class selectUnplayedBlock implements Listener {
 	private ArrayList<String> getState(String state) {
 		ArrayList<String> stateArray = new ArrayList<String>();
 		try {
-			ResultSet rs = db.getConnection().createStatement()
+			Connection conn = db.openConnection();
+			ResultSet rs = conn.createStatement()
 					.executeQuery("SELECT * FROM current_state WHERE state = '" + state + "'");
 			stateArray.clear();
 			while (rs.next()) {
 				stateArray.add(rs.getString(3));
 			}
+			conn.close();
 		} catch (Exception ex) {
 		}
 		return stateArray;
@@ -115,22 +118,26 @@ public class selectUnplayedBlock implements Listener {
 	private void updateGame(String column, String player, String block) {
 		int gameId = getGameId(player);
 		try {
-			PreparedStatement ps = db.getConnection().prepareStatement("UPDATE games SET " + column + " = ? WHERE game_id = ?");
+			Connection conn = db.openConnection();
+			PreparedStatement ps = conn.prepareStatement("UPDATE games SET " + column + " = ? WHERE game_id = ?");
 			ps.setString(1, block);
 			ps.setInt(2, gameId);
 			ps.executeUpdate();
+			conn.close();
 		} catch (Exception ex) {
 		}
 	}
 
 	private void updateState(String initialState, String changedState, String player) {
 		try {
-			PreparedStatement ps = db.getConnection()
+			Connection conn = db.openConnection();
+			PreparedStatement ps = conn
 					.prepareStatement("UPDATE current_state SET state = ? WHERE state = ? AND player = ?");
 			ps.setString(1, changedState);
 			ps.setString(2, initialState);
 			ps.setString(3, player);
 			ps.executeUpdate();
+			conn.close();
 		} catch (Exception ex) {
 		}
 	}
@@ -138,11 +145,13 @@ public class selectUnplayedBlock implements Listener {
 	private int getGameId(String player) {
 		int gameId = 0;
 		try {
-			PreparedStatement ps = db.getConnection().prepareStatement("SELECT game_id FROM current_state WHERE player = ?");
+			Connection conn = db.openConnection();
+			PreparedStatement ps = conn.prepareStatement("SELECT game_id FROM current_state WHERE player = ?");
 			ps.setString(1, player);
 			ResultSet rs = ps.executeQuery();
 			rs.next();
 			gameId = rs.getInt(1);
+			conn.close();
 		} catch (Exception ex) {
 		}
 		return gameId;

@@ -10,3 +10,6 @@ commands:
   removefromstate:
     description: Removes player from the game creation state -Use with caution-
     usage: /removefromstate <name>
+  mastermind:
+    description: Main command for mastermind.
+    usage: /mastermind <option> <option>

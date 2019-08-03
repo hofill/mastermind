@@ -59,7 +59,6 @@ public class Setup implements CommandExecutor {
 					metaCreateGame.setLore(Arrays.asList("Aids you in creating your Mastermind game"));
 					createGame.setItemMeta(metaCreateGame);
 					player.getInventory().addItem(createGame);
-					sender.sendMessage(ChatColor.BLUE + "Make sure you are facing north!");
 					// Phase one - Select unplayed block
 					sender.sendMessage(ChatColor.BLUE + "Drop a block to select the block type for the unplayed rows.");
 				}

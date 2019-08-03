@@ -78,7 +78,7 @@ public class selectUnplayedBlock implements Listener {
 				updateState("block_state_two", "before_solution_state", player.getName());
 				updateGame("peg_wrong_material", player.getName(), mat.name());
 				player.sendMessage(ChatColor.BLUE + "Block selected!");
-				player.sendMessage(ChatColor.BLUE + "Drop a block to select the block type for the hidden solution.");
+				player.sendMessage(ChatColor.BLUE + "Drop a block to select the block type for win display.");
 			} else {
 				player.sendMessage(ChatColor.DARK_GRAY + "Can't use this block! Please try another one.");
 			}

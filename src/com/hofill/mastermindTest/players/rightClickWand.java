@@ -9,6 +9,7 @@ import java.util.Arrays;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -32,6 +33,7 @@ public class rightClickWand implements Listener {
 	ArrayList<String> pegsCountState = new ArrayList<String>(); // Number of pegs
 	ArrayList<String> coordWinDisplayState = new ArrayList<String>(); // Number of pegs
 	ArrayList<String> pegsCoordState = new ArrayList<String>(); // Coordinates of pegs
+	ArrayList<String> guessCoordState = new ArrayList<String>(); // Coordinates of guesses
 	ArrayList<String> pegsMainCoordsState = new ArrayList<String>(); // Coordinates of main pegs
 	ArrayList<String> buttonCoordState = new ArrayList<String>(); // Coordinates of buttons
 	ArrayList<String> mainRoomState = new ArrayList<String>(); // Coordinates of main room
@@ -57,12 +59,14 @@ public class rightClickWand implements Listener {
 			pegsMainCoordsState.clear();
 			buttonCoordState.clear();
 			mainRoomState.clear();
+			guessCoordState.clear();
 			// Get states from database
 			gameLengthState = getState("game_length_state");
 			pegsCountState = getState("pegs_count_state");
 			coordWinDisplayState = getState("coord_win_display_state");
 			pegsCoordState = getState("pegs_coord_state");
 			pegsMainCoordsState = getState("pegs_main_guess_state");
+			guessCoordState = getState("guess_coord_state");
 			buttonCoordState = getState("button_coord_state");
 			mainRoomState = getState("main_room_state");
 			if (event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_AIR) {
@@ -154,9 +158,8 @@ public class rightClickWand implements Listener {
 							player.sendMessage(ChatColor.BLUE + "Block selected.");
 							if ((count + 1) % pegsCount == 0) {
 								String[] winDisplay = coord.split("\\|");
-								player.sendMessage(ChatColor.BLUE
-										+ "Type in chat the number of buttons you want to have to confirm guess (1-4)");
-								updateState("pegs_main_guess_state", "button_amount_state", player.getName());
+								player.sendMessage(ChatColor.BLUE + "Right click, in order, on the play zone blocks.");
+								updateState("pegs_main_guess_state", "guess_coord_state", player.getName());
 								for (String roughCoords : winDisplay) {
 									String[] coords = roughCoords.split("\\,");
 									Material mat = Material.getMaterial("AIR");
@@ -169,13 +172,47 @@ public class rightClickWand implements Listener {
 						} else {
 							player.sendMessage(ChatColor.RED + "You can't select the same block multiple times!");
 						}
+					} else if (guessCoordState.contains(player.getName())) {
+						Location location = event.getClickedBlock().getLocation();
+						String coord = getCoord("guess_coord", player.getName());
+						String newCoord = location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ()
+								+ "|";
+						if (!coord.contains(newCoord)) {
+							int gameSize = getGameSizes("game_length", player.getName());
+							int count = StringUtils.countMatches(coord, "|");
+							int pegsCount = getGameSizes("pegs_count", player.getName());
+							coord += newCoord;
+							updateCoord("guess_coord", player.getName(), coord);
+							player.sendMessage(ChatColor.BLUE + "Block selected.");
+							if ((count + 1) % pegsCount == 0) {
+								player.sendMessage(ChatColor.BLUE + "Row " + (count + 1) / pegsCount + " complete.");
+								player.sendMessage(
+										ChatColor.BLUE + "" + (gameSize - ((count + 1) / pegsCount)) + " more to go.");
+								String[] winDisplay = coord.split("\\|");
+								for (String roughCoords : winDisplay) {
+									String[] coords = roughCoords.split("\\,");
+									Material mat = Material.getMaterial("AIR");
+									World world = player.getWorld();
+									world.getBlockAt(Integer.parseInt(coords[0]), Integer.parseInt(coords[1]),
+											Integer.parseInt(coords[2])).setType(mat);
+								}
+							}
+							if (gameSize - ((count + 1) / pegsCount) == 0) {
+								player.sendMessage(ChatColor.BLUE + "All rows complete!");
+								player.sendMessage(ChatColor.BLUE
+										+ "Type in chat the number of buttons you want to have to confirm guess (1-4).");
+								updateState("guess_coord_state", "button_amount_state", player.getName());
+							}
+						} else {
+							player.sendMessage(ChatColor.RED + "You can't select the same block multiple times!");
+						}
 					} else if (buttonCoordState.contains(player.getName())) {
 						Location location = event.getClickedBlock().getLocation();
 						String coord = getCoord("button_coord", player.getName());
 						String newCoord = location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ()
 								+ "|";
 						if (!coord.contains(newCoord)) {
-							if (event.getClickedBlock().getType() == Material.STONE_BUTTON) {
+							if (Tag.BUTTONS.isTagged(event.getClickedBlock().getType())) {
 								int count = StringUtils.countMatches(coord, "|");
 								int buttonCount = getGameSizes("button_amount", player.getName());
 								coord += newCoord;
@@ -187,17 +224,19 @@ public class rightClickWand implements Listener {
 									updateState("button_coord_state", "main_room_state", player.getName());
 								}
 							} else {
-								player.sendMessage(ChatColor.RED + "You can only select stone buttons!");
+								player.sendMessage(ChatColor.RED + "You can only select buttons!");
 							}
 						} else {
 							player.sendMessage(ChatColor.RED + "You can't select the same button multiple times!");
 						}
 					} else if (mainRoomState.contains(player.getName())) {
 						Location location = event.getClickedBlock().getLocation();
-						String newCoord = location.getBlockX() + "," + location.getBlockY()+1 + "," + location.getBlockZ();
+						int y = location.getBlockY() + 1;
+						String newCoord = location.getBlockX() + "," + y + "," + location.getBlockZ();
 						updateCoord("main_room_teleport", player.getName(), newCoord);
 						player.sendMessage(ChatColor.BLUE + "Block selected.");
-						player.sendMessage(ChatColor.GREEN + "Game with the number " + getGameId(player.getName()) + " generated successfully.");
+						player.sendMessage(ChatColor.GREEN + "Game with the number " + getGameId(player.getName())
+								+ " generated successfully.");
 						player.sendMessage(ChatColor.GREEN + "Use /mastermind play <gameId> to play.");
 						player.sendMessage(ChatColor.GREEN + "To edit the game, use /mastermind edit <state>.");
 						removeState(player.getName());
@@ -206,7 +245,7 @@ public class rightClickWand implements Listener {
 			}
 		}
 	}
-	
+
 	private ArrayList<String> getState(String state) {
 		ArrayList<String> stateArray = new ArrayList<String>();
 		try {

@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class MySQL{
+public class MySQL {
 
 	public Connection conn = null;
 	private final String user;
@@ -35,9 +35,9 @@ public class MySQL{
 		conn = DriverManager.getConnection(connectionURL, user, password);
 		return conn;
 	}
-	
+
 	public void closeConnection() throws SQLException {
-		if(conn != null && !conn.isClosed()) {
+		if (conn != null && !conn.isClosed()) {
 			conn.close();
 		}
 	}

@@ -70,7 +70,7 @@ public class toggleButton implements Listener {
 								blocksGuessed.add(block.getType().name());
 							}
 						}
-						if (blocksGuessed.size() == 4) {
+						if (blocksGuessed.size() == pegCount) {
 							int right = 0;
 							int wrong = 0;
 							String answer = getStringProgress("answer", gameId);
